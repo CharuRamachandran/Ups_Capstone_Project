@@ -36,10 +36,10 @@ const UploadPage = () => {
   const validateFile = (file) => {
     if (!file) return 'Please select a file';
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      return 'Only JPEG and PNG images are allowed';
+      return 'File entered in wrong format';
     }
     if (file.size > MAX_FILE_SIZE) {
-      return 'File size must be less than 5MB';
+      return 'File size too large';
     }
     return null;
   };
@@ -59,16 +59,28 @@ const UploadPage = () => {
       }
 
       try {
-        // Verify that the file is actually an image
+        // Verify that the file is actually an image by trying to decode it
         const isValidImage = await new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          img.src = URL.createObjectURL(f);
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              // Additional check to verify image dimensions
+              if (img.width === 0 || img.height === 0) {
+                resolve(false);
+              } else {
+                resolve(true);
+              }
+            };
+            img.onerror = () => resolve(false);
+            img.src = event.target.result;
+          };
+          reader.onerror = () => resolve(false);
+          reader.readAsDataURL(f);
         });
 
         if (!isValidImage) {
-          setError('The file appears to be corrupted or is not a valid image');
+          setError('Invalid image file. Please upload a proper JPEG or PNG image');
           setFile(null);
           setPreviewUrl('');
           if (fileInputRef.current) {
@@ -81,7 +93,7 @@ const UploadPage = () => {
         setError('');
         setPreviewUrl(URL.createObjectURL(f));
       } catch (err) {
-        setError('Failed to process the file');
+        setError('Invalid image file. Please upload a proper JPEG or PNG image');
         setFile(null);
         setPreviewUrl('');
       }
@@ -113,16 +125,28 @@ const UploadPage = () => {
       }
 
       try {
-        // Verify that the file is actually an image
+        // Verify that the file is actually an image by trying to decode it
         const isValidImage = await new Promise((resolve) => {
-          const img = new Image();
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-          img.src = URL.createObjectURL(f);
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+              // Additional check to verify image dimensions
+              if (img.width === 0 || img.height === 0) {
+                resolve(false);
+              } else {
+                resolve(true);
+              }
+            };
+            img.onerror = () => resolve(false);
+            img.src = event.target.result;
+          };
+          reader.onerror = () => resolve(false);
+          reader.readAsDataURL(f);
         });
 
         if (!isValidImage) {
-          setError('The file appears to be corrupted or is not a valid image');
+          setError('Invalid image file. Please upload a proper JPEG or PNG image');
           return;
         }
 
@@ -130,7 +154,7 @@ const UploadPage = () => {
         setError('');
         setPreviewUrl(URL.createObjectURL(f));
       } catch (err) {
-        setError('Failed to process the file');
+        setError('Invalid image file. Please upload a proper JPEG or PNG image');
       }
     }
   };
